@@ -9,6 +9,7 @@ function App() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [loading, setLoading] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState(null);
+  const [isPrintPreview, setIsPrintPreview] = useState(false);
   const qrCodeRef = useRef();
 
   const handleInputChange = (e) => {
@@ -76,106 +77,89 @@ function App() {
     };
   };
 
-  const handlePrint = () => {
-    if (selectedRecord) {
-      const printWindow = window.open("", "_blank");
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Print Receipt</title>
-            <style>
-              body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
-              .record-info { font-size: 18px; margin: 20px 0; }
-              .record-info strong { display: inline-block; width: 100px; }
-              .qr-code { margin-top: 20px; }
-            </style>
-          </head>
-          <body>
-            <div class="record-info">
-              <strong>Ref ID:</strong> ${selectedRecord.fields["Ref_ID"]}
-            </div>
-            <div class="record-info">
-              <strong>First Name:</strong> ${selectedRecord.fields["First Name"]}
-            </div>
-            <div class="record-info">
-              <strong>Last Name:</strong> ${selectedRecord.fields["Last Name"]}
-            </div>
-            ${
-              qrCodeDataUrl
-                ? `<img src="${qrCodeDataUrl}" alt="QR Code" class="qr-code" width="150" height="150" />`
-                : ""
-            }
-            <script>
-              window.onload = function() {
-                window.print();
-                window.onafterprint = window.close;
-              };
-            </script>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-    }
+  const togglePrintPreview = () => {
+    setIsPrintPreview(!isPrintPreview);
   };
-  
+
   return (
     <div className="app-container">
-      <input
-        type="text"
-        name="searchTerm"
-        placeholder="Enter First or Last Name"
-        value={searchTerm}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
-        className="prefilled-input"
-      />
+      {!isPrintPreview ? (
+        <>
+          <input
+            type="text"
+            name="searchTerm"
+            placeholder="Enter First or Last Name"
+            value={searchTerm}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            className="prefilled-input"
+          />
 
-      {loading ? (
-        <div className="spinner"></div>
-      ) : records.length > 0 ? (
-        <table className="record-table">
-          <thead>
-            <tr>
-              <th>First Name</th>
-              <th>Last Name</th>
-              <th>Select</th>
-            </tr>
-          </thead>
-          <tbody>
-            {records.map((record) => (
-              <tr key={record.id}>
-                <td>{record.fields["First Name"]}</td>
-                <td>{record.fields["Last Name"]}</td>
-                <td>
-                  <button onClick={() => handleSelectRecord(record)}>Select</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p>No data found.</p>
-      )}
-
-      {selectedRecord && (
-        <div className="record-container">
-          <div className="record-row"><strong>Ref ID:</strong> {selectedRecord.fields["Ref_ID"]}</div>
-          <div className="record-row"><strong>First Name:</strong> {selectedRecord.fields["First Name"]}</div>
-          <div className="record-row"><strong>Last Name:</strong> {selectedRecord.fields["Last Name"]}</div>
-
-          <button className="generate-button" onClick={generateQRCode}>Generate QR</button>
-
-          <div ref={qrCodeRef} style={{ display: "none" }}>
-            <QRCode value={selectedRecord.fields["Ref_ID"]} size={150} />
-          </div>
-
-          {qrCodeDataUrl && (
-            <div className="qr-code-preview">
-              <img src={qrCodeDataUrl} alt="QR Code" width="150" height="150" />
-            </div>
+          {loading ? (
+            <div className="spinner"></div>
+          ) : records.length > 0 ? (
+            <table className="record-table">
+              <thead>
+                <tr>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>Select</th>
+                </tr>
+              </thead>
+              <tbody>
+                {records.map((record) => (
+                  <tr key={record.id}>
+                    <td>{record.fields["First Name"]}</td>
+                    <td>{record.fields["Last Name"]}</td>
+                    <td>
+                      <button onClick={() => handleSelectRecord(record)}>Select</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No data found.</p>
           )}
 
-          <button className="print-button" onClick={handlePrint}>Print</button>
+          {selectedRecord && (
+            <div className="record-container">
+              <div className="record-row"><strong>Ref ID:</strong> {selectedRecord.fields["Ref_ID"]}</div>
+              <div className="record-row"><strong>First Name:</strong> {selectedRecord.fields["First Name"]}</div>
+              <div className="record-row"><strong>Last Name:</strong> {selectedRecord.fields["Last Name"]}</div>
+
+              <button className="generate-button" onClick={generateQRCode}>Generate QR</button>
+
+              <div ref={qrCodeRef} style={{ display: "none" }}>
+                <QRCode value={selectedRecord.fields["Ref_ID"]} size={150} />
+              </div>
+
+              {qrCodeDataUrl && (
+                <div className="qr-code-preview">
+                  <img src={qrCodeDataUrl} alt="QR Code" width="150" height="150" />
+                </div>
+              )}
+
+              <button className="print-button" onClick={togglePrintPreview}>Print Preview</button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="print-preview">
+          <div className="record-info">
+            <strong>Ref ID:</strong> {selectedRecord.fields["Ref_ID"]}
+          </div>
+          <div className="record-info">
+            <strong>First Name:</strong> {selectedRecord.fields["First Name"]}
+          </div>
+          <div className="record-info">
+            <strong>Last Name:</strong> {selectedRecord.fields["Last Name"]}
+          </div>
+          {qrCodeDataUrl && (
+            <img src={qrCodeDataUrl} alt="QR Code" width="150" height="150" className="qr-code" />
+          )}
+          <button onClick={() => window.print()} className="print-button">Print</button>
+          <button onClick={togglePrintPreview} className="back-button">Back</button>
         </div>
       )}
     </div>
