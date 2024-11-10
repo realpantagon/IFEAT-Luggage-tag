@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import QRCode from "react-qr-code";
+import { PDFDownloadLink, Page, Text, View, Document, StyleSheet, Image } from "@react-pdf/renderer";
 import "./App.css";
 
 function App() {
@@ -8,6 +9,7 @@ function App() {
   const [record, setRecord] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showQrCode, setShowQrCode] = useState(false);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState(null);
 
   const handleInputChange = (e) => {
     setSearchTerm(e.target.value);
@@ -47,9 +49,34 @@ function App() {
     }
   };
 
+  const handleGenerate = () => {
+    setShowQrCode(true);
+    const qrCodeCanvas = document.getElementById("qrCodeCanvas");
+    const qrCodeUrl = qrCodeCanvas.toDataURL();
+    setQrCodeDataUrl(qrCodeUrl);
+  };
+
   const handlePrint = () => {
     window.print(); // Opens the browser's print dialog
   };
+
+  const ReceiptDocument = ({ data, qrCodeDataUrl }) => (
+    <Document>
+      <Page style={styles.page}>
+        <Text style={styles.header}>Receipt</Text>
+        <View style={styles.section}>
+          <Text>First Name: {data.fields["First Name"]}</Text>
+          <Text>Last Name: {data.fields["Last Name"]}</Text>
+          <Text>Ref ID: {data.fields["Ref_ID"]}</Text>
+        </View>
+        {qrCodeDataUrl && (
+          <View style={styles.qrCodeContainer}>
+            <Image src={qrCodeDataUrl} style={styles.qrCode} />
+          </View>
+        )}
+      </Page>
+    </Document>
+  );
 
   return (
     <div className="app-container">
@@ -67,28 +94,18 @@ function App() {
         <div className="spinner"></div>
       ) : record ? (
         <div className="record-container">
-          <table className="record-table">
-            <tbody>
-              <tr>
-                <td><strong>Ref ID:</strong></td>
-                <td>{record.fields["Ref_ID"]}</td>
-              </tr>
-              <tr>
-                <td><strong>First Name:</strong></td>
-                <td>{record.fields["First Name"]}</td>
-              </tr>
-              <tr>
-                <td><strong>Last Name:</strong></td>
-                <td>{record.fields["Last Name"]}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="record-row"><strong>Ref ID:</strong> {record.fields["Ref_ID"]}</div>
+          <div className="record-row"><strong>First Name:</strong> {record.fields["First Name"]}</div>
+          <div className="record-row"><strong>Last Name:</strong> {record.fields["Last Name"]}</div>
+
+          <button className="generate-button" onClick={handleGenerate}>Generate QR Code</button>
+
           {showQrCode && (
             <div className="qr-code-container">
               <QRCode value={record.fields["Ref_ID"]} size={150} />
             </div>
           )}
-          
+
           <button className="print-button" onClick={handlePrint}>Print</button>
         </div>
       ) : (
@@ -99,3 +116,29 @@ function App() {
 }
 
 export default App;
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 10,
+    fontSize: 16,
+  },
+  header: {
+    fontSize: 28,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  section: {
+    margin: 0,
+    padding: 0,
+    fontSize: 18,
+  },
+  qrCodeContainer: {
+    marginTop: 0,
+    padding: 0,
+    alignItems: "center",
+  },
+  qrCode: {
+    width: 400,
+    height: 400,
+  },
+});
