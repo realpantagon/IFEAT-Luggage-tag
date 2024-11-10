@@ -99,6 +99,10 @@ function App() {
           <table className="record-table">
             <tbody>
               <tr>
+                <td><strong>Ref ID:</strong></td>
+                <td>{record.fields["Ref_ID"]}</td>
+              </tr>
+              <tr>
                 <td><strong>First Name:</strong></td>
                 <td>{record.fields["First Name"]}</td>
               </tr>
@@ -106,14 +110,14 @@ function App() {
                 <td><strong>Last Name:</strong></td>
                 <td>{record.fields["Last Name"]}</td>
               </tr>
-              <tr>
+              {/* <tr>
                 <td><strong>Company:</strong></td>
                 <td>{record.fields.Company}</td>
               </tr>
               <tr>
                 <td><strong>Email:</strong></td>
                 <td>{record.fields.Email}</td>
-              </tr>
+              </tr> */}
             </tbody>
           </table>
           <button className="generate-button" onClick={handleGenerate}>Generate QR Code</button>
@@ -154,7 +158,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   qrCode: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
   },
 });
