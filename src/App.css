@@ -59,3 +59,32 @@
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
+
+@media print {
+  /* Hide input fields, buttons, and any non-essential elements during printing */
+  .prefilled-input, .generate-button, .print-button {
+    display: none;
+  }
+
+  /* Set paper size to 58mm wide, typically used for POS receipts */
+  @page {
+    size: 58mm auto; /* Width of 58mm, height adjusts based on content */
+    margin: 5mm; /* Small margin for POS printing */
+  }
+
+  .app-container {
+    width: 48mm; /* Fit content within the 58mm width with padding */
+    margin: auto;
+    padding: 5mm;
+    box-sizing: border-box;
+  }
+
+  /* Optional: Make text smaller to fit POS paper */
+  .record-table td, .record-table th {
+    font-size: 10px;
+  }
+
+  .qr-code-container {
+    margin-top: 10px;
+  }
+}
