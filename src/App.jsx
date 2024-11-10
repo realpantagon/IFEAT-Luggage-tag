@@ -1,21 +1,21 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import QRCode from "react-qr-code";
-import { PDFDownloadLink, Page, Text, View, Document, StyleSheet, Image } from "@react-pdf/renderer";
 import "./App.css";
 
 function App() {
-  const [searchTerm, setSearchTerm] = useState("IFEAT-");
-  const [record, setRecord] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [records, setRecords] = useState([]);
+  const [selectedRecord, setSelectedRecord] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showQrCode, setShowQrCode] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState(null);
+  const qrCodeRef = useRef();
 
   const handleInputChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  const searchAirtableByRefId = async () => {
+  const searchAirtableByName = async () => {
     setLoading(true);
     try {
       const response = await axios.get(
@@ -25,19 +25,20 @@ function App() {
             Authorization: `Bearer patqmneNITxUZMqvh.6428bde97139fccfde8876240fce3c9516d79b6b2484a180eb6e4e696661cde5`,
           },
           params: {
-            filterByFormula: `{Ref_ID} = "${searchTerm}"`,
+            filterByFormula: `
+              OR(
+                SEARCH(LOWER("${searchTerm}"), LOWER({First Name})),
+                SEARCH(LOWER("${searchTerm}"), LOWER({Last Name}))
+              )
+            `,
           },
         }
       );
 
-      if (response.data.records.length > 0) {
-        setRecord(response.data.records[0]);
-      } else {
-        setRecord(null);
-      }
+      setRecords(response.data.records);
     } catch (error) {
       console.error("Error fetching data:", error);
-      setRecord(null);
+      setRecords([]);
     } finally {
       setLoading(false);
     }
@@ -45,45 +46,84 @@ function App() {
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      searchAirtableByRefId();
+      searchAirtableByName();
     }
   };
 
-  const handleGenerate = () => {
-    setShowQrCode(true);
-    const qrCodeCanvas = document.getElementById("qrCodeCanvas");
-    const qrCodeUrl = qrCodeCanvas.toDataURL();
-    setQrCodeDataUrl(qrCodeUrl);
+  const handleSelectRecord = (record) => {
+    setSelectedRecord(record);
+    setQrCodeDataUrl(null); // Reset QR code when selecting a new record
+  };
+
+  const generateQRCode = () => {
+    const data = selectedRecord.fields["Ref_ID"];
+    const svg = qrCodeRef.current.querySelector("svg");
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+
+    const img = new Image();
+    img.src = url;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const pngDataUrl = canvas.toDataURL("image/png");
+      setQrCodeDataUrl(pngDataUrl);
+      URL.revokeObjectURL(url);
+    };
   };
 
   const handlePrint = () => {
-    window.print(); // Opens the browser's print dialog
+    if (selectedRecord) {
+      const printWindow = window.open("", "_blank");
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Print Receipt</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+              .record-info { font-size: 18px; margin: 20px 0; }
+              .record-info strong { display: inline-block; width: 100px; }
+              .qr-code { margin-top: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="record-info">
+              <strong>Ref ID:</strong> ${selectedRecord.fields["Ref_ID"]}
+            </div>
+            <div class="record-info">
+              <strong>First Name:</strong> ${selectedRecord.fields["First Name"]}
+            </div>
+            <div class="record-info">
+              <strong>Last Name:</strong> ${selectedRecord.fields["Last Name"]}
+            </div>
+            ${
+              qrCodeDataUrl
+                ? `<img src="${qrCodeDataUrl}" alt="QR Code" class="qr-code" width="150" height="150" />`
+                : ""
+            }
+            <script>
+              window.onload = function() {
+                window.print();
+                window.onafterprint = window.close;
+              };
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
   };
-
-  const ReceiptDocument = ({ data, qrCodeDataUrl }) => (
-    <Document>
-      <Page style={styles.page}>
-        <Text style={styles.header}>Receipt</Text>
-        <View style={styles.section}>
-          <Text>First Name: {data.fields["First Name"]}</Text>
-          <Text>Last Name: {data.fields["Last Name"]}</Text>
-          <Text>Ref ID: {data.fields["Ref_ID"]}</Text>
-        </View>
-        {qrCodeDataUrl && (
-          <View style={styles.qrCodeContainer}>
-            <Image src={qrCodeDataUrl} style={styles.qrCode} />
-          </View>
-        )}
-      </Page>
-    </Document>
-  );
-
+  
   return (
     <div className="app-container">
       <input
         type="text"
         name="searchTerm"
-        placeholder="Enter Ref_ID"
+        placeholder="Enter First or Last Name"
         value={searchTerm}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
@@ -92,53 +132,54 @@ function App() {
 
       {loading ? (
         <div className="spinner"></div>
-      ) : record ? (
+      ) : records.length > 0 ? (
+        <table className="record-table">
+          <thead>
+            <tr>
+              <th>First Name</th>
+              <th>Last Name</th>
+              <th>Select</th>
+            </tr>
+          </thead>
+          <tbody>
+            {records.map((record) => (
+              <tr key={record.id}>
+                <td>{record.fields["First Name"]}</td>
+                <td>{record.fields["Last Name"]}</td>
+                <td>
+                  <button onClick={() => handleSelectRecord(record)}>Select</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p>No data found.</p>
+      )}
+
+      {selectedRecord && (
         <div className="record-container">
-          <div className="record-row"><strong>Ref ID:</strong> {record.fields["Ref_ID"]}</div>
-          <div className="record-row"><strong>First Name:</strong> {record.fields["First Name"]}</div>
-          <div className="record-row"><strong>Last Name:</strong> {record.fields["Last Name"]}</div>
+          <div className="record-row"><strong>Ref ID:</strong> {selectedRecord.fields["Ref_ID"]}</div>
+          <div className="record-row"><strong>First Name:</strong> {selectedRecord.fields["First Name"]}</div>
+          <div className="record-row"><strong>Last Name:</strong> {selectedRecord.fields["Last Name"]}</div>
 
-          <button className="generate-button" onClick={handleGenerate}>Generate QR Code</button>
+          <button className="generate-button" onClick={generateQRCode}>Generate QR</button>
 
-          {showQrCode && (
-            <div className="qr-code-container">
-              <QRCode value={record.fields["Ref_ID"]} size={150} />
+          <div ref={qrCodeRef} style={{ display: "none" }}>
+            <QRCode value={selectedRecord.fields["Ref_ID"]} size={150} />
+          </div>
+
+          {qrCodeDataUrl && (
+            <div className="qr-code-preview">
+              <img src={qrCodeDataUrl} alt="QR Code" width="150" height="150" />
             </div>
           )}
 
           <button className="print-button" onClick={handlePrint}>Print</button>
         </div>
-      ) : (
-        <p>No data found.</p>
       )}
     </div>
   );
 }
 
 export default App;
-
-const styles = StyleSheet.create({
-  page: {
-    padding: 10,
-    fontSize: 16,
-  },
-  header: {
-    fontSize: 28,
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  section: {
-    margin: 0,
-    padding: 0,
-    fontSize: 18,
-  },
-  qrCodeContainer: {
-    marginTop: 0,
-    padding: 0,
-    alignItems: "center",
-  },
-  qrCode: {
-    width: 400,
-    height: 400,
-  },
-});
