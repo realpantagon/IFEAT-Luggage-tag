@@ -147,17 +147,19 @@ function App() {
       ) : (
         <div className="print-preview">
           <div className="record-info">
-            <strong>Ref ID:</strong> {selectedRecord.fields["Ref_ID"]}
-          </div>
-          <div className="record-info">
-            <strong>First Name:</strong> {selectedRecord.fields["First Name"]}
-          </div>
-          <div className="record-info">
-            <strong>Last Name:</strong> {selectedRecord.fields["Last Name"]}
-          </div>
+            <div>
+            {selectedRecord.fields["Ref_ID"]}
+            </div>
+            <div>
+            {selectedRecord.fields["First Name"]}
+            </div>
+            <div>
+            {selectedRecord.fields["Last Name"]}
+            </div>
           {qrCodeDataUrl && (
             <img src={qrCodeDataUrl} alt="QR Code" width="100" height="100" className="qr-code" />
           )}
+          </div>
           <button onClick={() => window.print()} className="print-button">Print</button>
           <button onClick={togglePrintPreview} className="back-button">Back</button>
         </div>
