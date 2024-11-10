@@ -1,0 +1,106 @@
+.app-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #333;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto; /* Center the spinner */
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.record-container {
+  margin-top: 20px;
+}
+
+.record-table {
+  margin: 0 auto;
+  border-collapse: collapse;
+}
+
+.record-table td {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+}
+
+.generate-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #28a745;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.generate-button:hover {
+  background-color: #218838;
+}
+
+
+.pdf-download {
+  margin-top: 20px;
+}
+
+.generate-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.generate-button:hover {
+  background-color: #0056b3;
+}
+
+
+.app-container {
+  padding: 20px;
+}
+
+.prefilled-input {
+  margin-bottom: 15px;
+  padding: 8px;
+  width: 100%;
+}
+
+.record-table td {
+  padding: 2px 8px; /* Less padding between table rows */
+}
+
+.qr-code-container {
+  margin-top: 15px;
+}
+
+.generate-button, .print-button {
+  margin-top: 10px;
+  padding: 8px 15px;
+  cursor: pointer;
+}
+
+@media print {
+  /* Hide input fields, buttons, and any non-essential elements during printing */
+  .prefilled-input, .generate-button, .print-button {
+    display: none;
+  }
+
+  /* Style adjustments specifically for print */
+  .app-container {
+    margin: 0;
+    padding: 10px;
+  }
+}
