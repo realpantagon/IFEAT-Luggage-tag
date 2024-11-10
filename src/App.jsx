@@ -156,7 +156,7 @@ function App() {
             <strong>Last Name:</strong> {selectedRecord.fields["Last Name"]}
           </div>
           {qrCodeDataUrl && (
-            <img src={qrCodeDataUrl} alt="QR Code" width="150" height="150" className="qr-code" />
+            <img src={qrCodeDataUrl} alt="QR Code" width="100" height="100" className="qr-code" />
           )}
           <button onClick={() => window.print()} className="print-button">Print</button>
           <button onClick={togglePrintPreview} className="back-button">Back</button>
