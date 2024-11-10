@@ -10,7 +10,7 @@
   width: 40px;
   height: 40px;
   animation: spin 1s linear infinite;
-  margin: 20px auto; /* Center the spinner */
+  margin: 20px auto;
 }
 
 @keyframes spin {
@@ -21,69 +21,11 @@
 
 .record-container {
   margin-top: 20px;
-}
-
-.record-table {
-  margin: 0 auto;
-  border-collapse: collapse;
-}
-
-.record-table td {
-  padding: 8px 16px;
-  border: 1px solid #ddd;
-}
-
-.generate-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 16px;
-  color: #fff;
-  background-color: #28a745;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.generate-button:hover {
-  background-color: #218838;
-}
-
-
-.pdf-download {
-  margin-top: 20px;
-}
-
-.generate-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  color: #fff;
-  background-color: #007bff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.generate-button:hover {
-  background-color: #0056b3;
-}
-
-
-.app-container {
-  padding: 20px;
-}
-
-.prefilled-input {
-  margin-bottom: 15px;
-  padding: 8px;
-  width: 100%;
-}
-
-.record-table td {
-  padding: 2px 8px; /* Less padding between table rows */
+  font-size: 14px; /* Default font size for screen */
 }
 
 .qr-code-container {
-  margin-top: 15px;
+  margin-top: 10px;
 }
 
 .generate-button, .print-button {
@@ -92,15 +34,55 @@
   cursor: pointer;
 }
 
+.prefilled-input {
+  margin-bottom: 15px;
+  padding: 8px;
+  width: 100%;
+}
+
+/* Print-specific styles */
 @media print {
   /* Hide input fields, buttons, and any non-essential elements during printing */
-  .prefilled-input, .generate-button, .print-button {
+  .prefilled-input, .generate-button, .print-button, .spinner {
     display: none;
   }
 
-  /* Style adjustments specifically for print */
+  /* Style adjustments specifically for small print */
   .app-container {
     margin: 0;
-    padding: 10px;
+    padding: 5px;
+    width: 58mm;
+    height: 58mm;
+    text-align: left;
+  }
+
+  .record-container {
+    margin: 0;
+    padding: 0;
+    font-size: 10px; /* Adjusted for small print */
+    line-height: 1.2;
+  }
+
+  .record-row {
+    padding: 2px 0;
+  }
+
+  .qr-code-container {
+    margin: 5px 0 0 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .qr-code-container img,
+  .qr-code-container svg {
+    width: 50px;
+    height: 50px; /* Adjusted QR code size */
+  }
+
+  /* Ensure no margins or extra padding in print */
+  * {
+    margin: 0;
+    padding: 0;
   }
 }
