@@ -1,5 +1,40 @@
 /* App.css */
 
+@media print {
+  body {
+    margin: 0;
+  }
+
+  .print-preview {
+    width: 58mm;
+    height: 58mm;
+    font-size: 10px; /* Small font size for smaller paper */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5mm;
+  }
+
+  .record-info {
+    font-size: 10px;
+    text-align: center;
+    margin: 5px 0;
+  }
+
+  .qr-code {
+    width: 40mm; /* Adjust QR code to fit within 58mm */
+    height: 40mm;
+    margin: 5mm 0;
+  }
+
+  .print-button,
+  .back-button {
+    display: none; /* Hide buttons during print */
+  }
+}
+
+
 .app-container {
   display: flex;
   flex-direction: column;
